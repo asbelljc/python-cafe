@@ -114,5 +114,36 @@ def update_price(cafe_id):
         )
 
 
+@app.route("/delete/<int:cafe_id>", methods=["DELETE"])
+def delete_cafe(cafe_id):
+    fake_api_key = request.args.get("api-key")
+    cafe = Cafe.query.get(cafe_id)
+
+    if not cafe:
+        return (
+            jsonify(
+                error={
+                    "Not Found": "Sorry, a cafe with that id was not found in the database."
+                }
+            ),
+            404,
+        )
+
+    if fake_api_key != "fake_api_key":
+        return (
+            jsonify(
+                error={
+                    "Unauthorized": "Sorry, you must have a valid fake api key to delete a cafe."
+                }
+            ),
+            403,
+        )
+
+    db.session.delete(cafe)
+    db.session.commit()
+
+    return jsonify(response={"success": "Successfully deleted the cafe."}), 200
+
+
 if __name__ == "__main__":
     app.run(debug=True)
