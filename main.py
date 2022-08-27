@@ -66,5 +66,26 @@ def search():
     return jsonify(cafes)
 
 
+@app.route("/new", methods=["POST"])
+def add_new_cafe():
+    new_cafe = Cafe(
+        name=request.json["name"],
+        map_url=request.json["map_url"],
+        img_url=request.json["img_url"],
+        location=request.json["location"],
+        seats=request.json["seats"],
+        has_toilet=request.json["has_toilet"],
+        has_wifi=request.json["has_wifi"],
+        has_sockets=request.json["has_sockets"],
+        can_take_calls=request.json["can_take_calls"],
+        coffee_price=request.json["coffee_price"],
+    )
+
+    db.session.add(new_cafe)
+    db.session.commit()
+
+    return jsonify(response={"success": "New cafe successfully added."})
+
+
 if __name__ == "__main__":
     app.run(debug=True)
