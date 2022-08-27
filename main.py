@@ -43,14 +43,14 @@ def get_random_cafe():
     # return first record after skip
     random_cafe = Cafe.query.offset(random_offset).first()
 
-    return jsonify(random_cafe)
+    return jsonify(random_cafe), 200
 
 
 @app.route("/all")
 def get_all_cafes():
     cafes = Cafe.query.all()
 
-    return jsonify(cafes)
+    return jsonify(cafes), 200
 
 
 @app.route("/search")
@@ -59,32 +59,59 @@ def search():
     cafes = Cafe.query.filter_by(location=location).all()
 
     if len(cafes) == 0:
-        return jsonify(
-            error={"Not Found": "Sorry, we don't have a cafe at that location."}
+        return (
+            jsonify(
+                error={"Not Found": "Sorry, we don't have a cafe at that location."}
+            ),
+            404,
         )
-
-    return jsonify(cafes)
+    else:
+        return jsonify(cafes), 200
 
 
 @app.route("/new", methods=["POST"])
 def add_new_cafe():
+    body = request.get_json()
+    print(body)
+
     new_cafe = Cafe(
-        name=request.json["name"],
-        map_url=request.json["map_url"],
-        img_url=request.json["img_url"],
-        location=request.json["location"],
-        seats=request.json["seats"],
-        has_toilet=request.json["has_toilet"],
-        has_wifi=request.json["has_wifi"],
-        has_sockets=request.json["has_sockets"],
-        can_take_calls=request.json["can_take_calls"],
-        coffee_price=request.json["coffee_price"],
+        name=body["name"],
+        map_url=body["map_url"],
+        img_url=body["img_url"],
+        location=body["location"],
+        seats=body["seats"],
+        has_toilet=body["has_toilet"],
+        has_wifi=body["has_wifi"],
+        has_sockets=body["has_sockets"],
+        can_take_calls=body["can_take_calls"],
+        coffee_price=body["coffee_price"],
     )
 
     db.session.add(new_cafe)
     db.session.commit()
 
-    return jsonify(response={"success": "New cafe successfully added."})
+    return jsonify(response={"success": "New cafe successfully added."}), 200
+
+
+@app.route("/update-price/<int:cafe_id>", methods=["PATCH"])
+def update_price(cafe_id):
+    new_price = request.args.get("new_price")
+    cafe = Cafe.query.get(cafe_id)
+
+    if cafe:
+        cafe.coffee_price = new_price
+        db.session.commit()
+
+        return jsonify(response={"success": "Successfully updated the price."}), 200
+    else:
+        return (
+            jsonify(
+                error={
+                    "Not Found": "Sorry, a cafe with that id was not found in the database."
+                }
+            ),
+            404,
+        )
 
 
 if __name__ == "__main__":
